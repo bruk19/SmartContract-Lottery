@@ -8,22 +8,30 @@ error Raffle__NotEnoughETHEntered();
 
 contract Lottery is VRFConsumerBaseV2 {
     /* Staate Variables */
-    uint256 private immutable i_entranceFee;
+    uint64 private immutable i_entranceFee;
     address payable[] private s_players;
     VRFCoordinatorV2Interface private s_vrfCoordinatorV2;
     uint64 public s_entranceFee;
     bytes32 private immutable i_gasLane;
     uint64 private immutable i_subscriptionId;
-    uint16 private constant REQUEST_CONFIRMATIONS = 3; 
+    uint16 private constant REQUEST_CONFIRMATIONS = 3;
     uint32 private immutable i_callbackGasLimit;
     uint32 private immutable i_numWord;
 
     /* Events */
 
     event raffleEnter(address indexed player);
-    event RequestedRaffleWinner(uint256 indexed requestId)
+    event RequestedRaffleWinner(uint256 indexed requestId);
 
-    constructor(address vrfCoordinatorV2, uint256 entranceFee, byte32 memory gasLane, uint64 subscriptionId, uint16 requestConfirmation, uint32 callbackGasLimit, uint32 numWord) VRFConsumerBaseV2(vrfCoordinatorV2) {
+    constructor(
+        address vrfCoordinatorV2,
+        uint64 entranceFee,
+        bytes32 gasLane,
+        uint64 subscriptionId,
+        uint16 requestConfirmation,
+        uint32 callbackGasLimit,
+        uint32 numWord
+    ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFee = entranceFee;
         s_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
         s_entranceFee = entranceFee;
@@ -42,12 +50,12 @@ contract Lottery is VRFConsumerBaseV2 {
     }
 
     function pickRandomWinner() external {
-        uint256 requestId = _vrfCoordinatorV2.requestRandomWords(
+        uint256 requestId = s_vrfCoordinatorV2.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
             REQUEST_CONFIRMATIONS,
             i_callbackGasLimit,
-            i_numWords
+            i_numWord
         );
         emit RequestedRaffleWinner(requestId);
     }
@@ -55,7 +63,10 @@ contract Lottery is VRFConsumerBaseV2 {
     function fulfillRandomWords(
         uint256 requestId,
         uint256[] memory randomWords
-    ) internal override {}
+    ) internal override {
+      uint256 indexOfWinner = randomWords[o] % s_players;
+      address payable recentWinner = s_players[indexOfWinner];
+    }
 
     function getEntranceFee() public view returns (uint256) {
         return i_entranceFee;
