@@ -21,6 +21,7 @@ contract Lottery is VRFConsumerBaseV2 {
     /* Events */
 
     event raffleEnter(address indexed player);
+    event RequestedRaffleWinner(uint256 indexed requestId)
 
     constructor(address vrfCoordinatorV2, uint256 entranceFee, byte32 memory gasLane, uint64 subscriptionId, uint16 requestConfirmation, uint32 callbackGasLimit, uint32 numWord) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFee = entranceFee;
@@ -41,13 +42,14 @@ contract Lottery is VRFConsumerBaseV2 {
     }
 
     function pickRandomWinner() external {
-        _vrfCoordinatorV2.requestRandomWords(
+        uint256 requestId = _vrfCoordinatorV2.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
             REQUEST_CONFIRMATIONS,
             i_callbackGasLimit,
             i_numWords
         );
+        emit RequestedRaffleWinner(requestId);
     }
 
     function fulfillRandomWords(
