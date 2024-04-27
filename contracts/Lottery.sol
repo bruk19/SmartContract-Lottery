@@ -25,6 +25,7 @@ contract Lottery is VRFConsumerBaseV2 {
 
     event raffleEnter(address indexed player);
     event RequestedRaffleWinner(uint256 indexed requestId);
+    event pickedWinner(address indexed winner);
 
     constructor(
         address vrfCoordinatorV2,
@@ -63,17 +64,16 @@ contract Lottery is VRFConsumerBaseV2 {
         emit RequestedRaffleWinner(requestId);
     }
 
-    function fulfillRandomWords(
-        uint256 requestId,
-        uint256[] memory randomWords
-    ) internal override {
-      uint256 indexOfWinner = randomWords[o] % s_players;
-      address payable recentWinner = s_players[indexOfWinner];
-      s_recentWinner = recentWinner;
-      (bool success, ) = recentWinner.call{value: address(this).balance}
-      if(!success) {
-        revert Raffle_TransferFailed();
-      }
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
+        uint256 indexOfWinner = randomWords[0] % s_players.length;
+        address payable recentWinner = s_players[indexOfWinner];
+        s_recentWinner = recentWinner;
+        (bool success, ) = recentWinner.call{value: address(this).balance}("");
+        if (!success) {
+            revert Raffle_TransferFailed();
+        }
+
+        emit pickedWinner(s_recentWinner);
     }
 
     function getEntranceFee() public view returns (uint256) {
@@ -84,7 +84,7 @@ contract Lottery is VRFConsumerBaseV2 {
         return s_players[index];
     }
 
-    function getRecentWinner () public view returns(address) {
-      return s_recentWinner;
+    function getRecentWinner() public view returns (address) {
+        return s_recentWinner;
     }
 }
