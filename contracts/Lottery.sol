@@ -8,7 +8,12 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/autom
 error Raffle__NotEnoughETHEntered();
 error Raffle_TransferFailed();
 
-contract Lottery is VRFConsumerBaseV2 {
+contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
+
+  enum RaffleState {
+    OPEN, 
+    CAlCULATING
+  }
     /* Staate Variables */
     uint64 private immutable i_entranceFee;
     address payable[] private s_players;
@@ -21,6 +26,7 @@ contract Lottery is VRFConsumerBaseV2 {
     uint32 private immutable i_numWord;
 
     address private s_recentWinner;
+    bool private s_isOpen;
 
     /* Events */
 
