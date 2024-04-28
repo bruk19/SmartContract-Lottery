@@ -85,6 +85,7 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
         s_raffleState = RaffleState.OPEN;
+        s_players = new address payable [](0);
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
             revert Raffle_TransferFailed();
