@@ -3,6 +3,7 @@ pragma solidity ^0.8.8;
 
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
 error Raffle__NotEnoughETHEntered();
 error Raffle_TransferFailed();
@@ -52,6 +53,8 @@ contract Lottery is VRFConsumerBaseV2 {
         s_players.push(payable(msg.sender));
         emit raffleEnter(msg.sender);
     }
+
+    function checkUpKeep(bytes calldata /* checkData */) override exteranl {}
 
     function pickRandomWinner() external {
         uint256 requestId = s_vrfCoordinatorV2.requestRandomWords(
