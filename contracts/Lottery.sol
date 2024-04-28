@@ -69,6 +69,7 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
     function checkUpKeep(bytes calldata /* checkData */) override exteranl {}
 
     function pickRandomWinner() external {
+      s_raffleState = RaffleState.CAlCULATING;
         uint256 requestId = s_vrfCoordinatorV2.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
