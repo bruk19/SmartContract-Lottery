@@ -7,6 +7,7 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/autom
 
 error Raffle__NotEnoughETHEntered();
 error Raffle_TransferFailed();
+erro RAffle__NotOpen();
 
 contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
 
@@ -26,6 +27,7 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
     uint32 private immutable i_numWord;
 
     address private s_recentWinner;
+    RaffleState private s_raffleState;
     bool private s_isOpen;
 
     /* Events */
@@ -50,11 +52,15 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
         i_numWord = numWord;
+        s_raffleState = RaffleState.OPEN;
     }
 
     function enterRaffle() public payable {
         if (msg.value < i_entranceFee) {
             revert Raffle__NotEnoughETHEntered();
+        }
+        if (s_raffleState != RaffleState.OPEN){
+          revert RAffle__NotOpen();
         }
         s_players.push(payable(msg.sender));
         emit raffleEnter(msg.sender);
