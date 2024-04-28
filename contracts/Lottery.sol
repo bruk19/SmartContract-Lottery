@@ -128,4 +128,8 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
     function getRecentWinner() public view returns (address) {
         return s_recentWinner;
     }
+
+    function getRaffleState() public vew returns (RaffleState) {
+      return s_raffleState;
+    }
 }
