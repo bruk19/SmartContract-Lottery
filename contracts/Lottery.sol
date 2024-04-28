@@ -28,7 +28,9 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
 
     address private s_recentWinner;
     RaffleState private s_raffleState;
-    bool private s_isOpen;
+    bool private isOpen;
+    uint256 private s_lastTimeStamp;
+    uint256 private s_interval;
 
     /* Events */
 
@@ -43,7 +45,8 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
         uint64 subscriptionId,
         uint16 requestConfirmation,
         uint32 callbackGasLimit,
-        uint32 numWord
+        uint32 numWord,
+        uint256 interval
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFee = entranceFee;
         s_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
@@ -53,6 +56,8 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
         i_callbackGasLimit = callbackGasLimit;
         i_numWord = numWord;
         s_raffleState = RaffleState.OPEN;
+        s_lastTimeStamp = block.timestamp;
+        s_interval = interval;
     }
 
     function enterRaffle() public payable {
@@ -66,7 +71,11 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
         emit raffleEnter(msg.sender);
     }
 
-    function checkUpKeep(bytes calldata /* checkData */) override exteranl {}
+    function checkUpKeep(bytes calldata /* checkData */) override exteranl {
+      isOpen = (RaffleState.OPEN == s_raffleState);
+      bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
+
+    }
 
     function pickRandomWinner() external {
       s_raffleState = RaffleState.CAlCULATING;
