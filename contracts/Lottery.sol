@@ -7,14 +7,14 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/autom
 
 error Raffle__NotEnoughETHEntered();
 error Raffle_TransferFailed();
-erro RAffle__NotOpen();
+error RAffle__NotOpen();
+error Raffle__UpKeepNotNeeded(uint currentBalance, uint256 numPlayers, uint256 raffleStates);
 
 contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
-
-  enum RaffleState {
-    OPEN, 
-    CAlCULATING
-  }
+    enum RaffleState {
+        OPEN,
+        CAlCULATING
+    }
     /* Staate Variables */
     uint64 private immutable i_entranceFee;
     address payable[] private s_players;
@@ -64,24 +64,34 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
         if (msg.value < i_entranceFee) {
             revert Raffle__NotEnoughETHEntered();
         }
-        if (s_raffleState != RaffleState.OPEN){
-          revert RAffle__NotOpen();
+        if (s_raffleState != RaffleState.OPEN) {
+            revert RAffle__NotOpen();
         }
         s_players.push(payable(msg.sender));
         emit raffleEnter(msg.sender);
     }
 
-    function checkUpKeep(bytes calldata /* checkData */) override exteranl returns (bool upKeepNeeded, bytes memory /* performData */) {
-      isOpen = (RaffleState.OPEN == s_raffleState);
-      bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
-      bool hasPlayers = (s_players.length > 0);
-      bool hasBalance = address(this).balance > 0;
-      bool upKeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
-
+    function checkUpKeep(
+        bytes calldata /* checkData */
+    ) public override returns (bool upKeepNeeded, bytes memory /* performData */) {
+        isOpen = (RaffleState.OPEN == s_raffleState);
+        bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
+        bool hasPlayers = (s_players.length > 0);
+        bool hasBalance = address(this).balance > 0;
+        bool upKeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
     }
 
-    function pickRandomWinner() external {
-      s_raffleState = RaffleState.CAlCULATING;
+    function performUpKeep(bytes calldat /* performData */) external override {
+        (bool upKeepNeeded, ) = checkUpKeep("");
+        if (!upKeepNeeded) {
+            revert Raffle__UpKeepNotNeeded(
+                address(this).balance,
+                s_player.length,
+                uint256(s_raffleState)
+            );
+        }
+
+        s_raffleState = RaffleState.CAlCULATING;
         uint256 requestId = s_vrfCoordinatorV2.requestRandomWords(
             i_gasLane,
             i_subscriptionId,
@@ -97,7 +107,7 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatible {
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
         s_raffleState = RaffleState.OPEN;
-        s_players = new address payable [](0);
+        s_players = new address payable[](0);
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
             revert Raffle_TransferFailed();
