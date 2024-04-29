@@ -3,7 +3,7 @@ pragma solidity ^0.8.8;
 
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFConsumerBaseV2} from "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
+import "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 
 error Raffle__NotEnoughETHEntered();
 error Raffle_TransferFailed();
@@ -19,7 +19,6 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint64 private immutable i_entranceFee;
     address payable[] private s_players;
     VRFCoordinatorV2Interface private s_vrfCoordinatorV2;
-    uint64 public s_entranceFee;
     bytes32 private immutable i_gasLane;
     uint64 private immutable i_subscriptionId;
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
@@ -28,9 +27,8 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     address private s_recentWinner;
     RaffleState private s_raffleState;
-    bool private isOpen;
     uint256 private s_lastTimeStamp;
-    uint256 private s_interval;
+    uint256 private i_interval;
 
     /* Events */
 
@@ -43,21 +41,17 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
         uint64 entranceFee,
         bytes32 gasLane,
         uint64 subscriptionId,
-        uint16 requestConfirmation,
         uint32 callbackGasLimit,
-        uint32 numWord,
         uint256 interval
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFee = entranceFee;
         s_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
-        s_entranceFee = entranceFee;
         i_gasLane = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
-        i_numWord = numWord;
         s_raffleState = RaffleState.OPEN;
         s_lastTimeStamp = block.timestamp;
-        s_interval = interval;
+        i_interval = interval;
     }
 
     function enterRaffle() public payable {
@@ -71,18 +65,19 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
         emit raffleEnter(msg.sender);
     }
 
-    function checkUpKeep(
+    function checkUpkeep(
         bytes memory /* checkData */
-    ) public returns (bool upKeepNeeded, bytes memory /* performData */) {
-        isOpen = (RaffleState.OPEN == s_raffleState);
-        bool timePassed = ((block.timestamp - s_lastTimeStamp) > s_interval);
+    ) public view override returns (bool upKeepNeeded, bytes memory /* performData */) {
+        bool isOpen = RaffleState.OPEN == s_raffleState;
+        bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);
         bool hasPlayers = (s_players.length > 0);
         bool hasBalance = address(this).balance > 0;
-        bool upKeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
+        upKeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
+        return (upKeepNeeded, "0x0");
     }
 
-    function performUpKeep(bytes calldata /* performData */) external {
-        (bool upKeepNeeded, ) = checkUpKeep("");
+    function  performUpkeep(bytes calldata /* performData */) external override{
+        (bool upKeepNeeded, ) = checkUpkeep("");
         if (!upKeepNeeded) {
             revert Raffle__UpKeepNotNeeded(
                 address(this).balance,
@@ -131,5 +126,17 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
 
     function getRaffleState() public view returns (RaffleState) {
       return s_raffleState;
+    }
+
+    function getLatestTimeStamp() public view returns (uint256) {
+      return s_lastTimeStamp;
+    }
+
+    function getNumberOfPlayers() public view returns (uint256) {
+      return s_players.length;
+    }
+
+    function getRequestConfirmation() public view returns (uint256) {
+      return REQUEST_CONFIRMATIONS;
     }
 }
