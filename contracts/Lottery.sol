@@ -132,4 +132,12 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
     function getRaffleState() public view returns (RaffleState) {
       return s_raffleState;
     }
+
+    function getLatestTimeStamp() public view returns (uint256) {
+      return s_lastTimeStamp;
+    }
+
+    function getNumberOfPlayers() public view returns (uint256) {
+      return s_players.length;
+    }
 }
