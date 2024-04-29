@@ -12,9 +12,13 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
 
 module.exports = {
-  defaultNetwork : "hardhat",
+  defaultNetwork: "hardhat",
   solidity: "0.8.24",
   networks: {
+    hardhat: {
+      chainId: 31337,
+      blockConfirmations: 1,
+    },
     sepolia: {
       url: SEPOLIA_RPC_URL,
       accounts: [PRIVATE_KEY],
@@ -29,15 +33,12 @@ module.exports = {
     apiKey: ETHERSCAN_API_KEY,
   },
   namedAccounts: {
-    owner: {
+    deployer: {
       default: 0,
     },
-    funder1: {
-      default:  1,
+    player: {
+      default: 1,
     },
-    funder2: {
-      default: 2
-    }
   },
   paths: {
     sources: "./contracts",
