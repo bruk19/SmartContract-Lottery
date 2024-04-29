@@ -1,8 +1,15 @@
+const { ethers } = require("hardhat")
+
 const networkConfig = {
-  31337: {
+  11155111: {
     name: "sepolia",
-    vrfCoordinatorV2: "0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625"
+    vrfCoordinatorV2: "0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625",
+    entranceFee: ethers.utils.parseEther("0.01"),
   },
+  31337: {
+    name: "hardhat",
+    entranceFee: ethers.utils.parseEther("0.01"),
+  }
 }
 
 const developmentChains = ["hardhat", "localhost"]
