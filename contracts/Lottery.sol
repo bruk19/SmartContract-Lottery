@@ -19,7 +19,6 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
     uint64 private immutable i_entranceFee;
     address payable[] private s_players;
     VRFCoordinatorV2Interface private s_vrfCoordinatorV2;
-    uint64 public s_entranceFee;
     bytes32 private immutable i_gasLane;
     uint64 private immutable i_subscriptionId;
     uint16 private constant REQUEST_CONFIRMATIONS = 3;
@@ -42,18 +41,14 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
         uint64 entranceFee,
         bytes32 gasLane,
         uint64 subscriptionId,
-        uint16 requestConfirmation,
         uint32 callbackGasLimit,
-        uint32 numWord,
         uint256 interval
     ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFee = entranceFee;
         s_vrfCoordinatorV2 = VRFCoordinatorV2Interface(vrfCoordinatorV2);
-        s_entranceFee = entranceFee;
         i_gasLane = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
-        i_numWord = numWord;
         s_raffleState = RaffleState.OPEN;
         s_lastTimeStamp = block.timestamp;
         i_interval = interval;
