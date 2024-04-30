@@ -1,8 +1,8 @@
 const { network, ethers } = require("hardhat")
 const { networkConfig, developmentChains } = require("../helper-hardhat-config")
 const { verify } = require("../utils/verify")
-const FUND_AMOUNT = ethers.parseEther("1")
-const BASE_FEE = ethers.parseEther("0.25");
+const FUND_AMOUNT = ethers.parseUnits("1", 16)
+const BASE_FEE = ethers.parseEther("25", 16);
 const GAS_PRICE_LINK = 1e9
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
@@ -13,15 +13,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   if (developmentChains.includes(network.name)) {
     vrfCoordinatorV2Mock = await ethers.getContractFactory("VRFCoordinatorV2Mock")
+
     vrf_Coordinatorv2Mokck = await vrfCoordinatorV2Mock.deploy(BASE_FEE, GAS_PRICE_LINK)
-    vrfCoordinatorV2Address = vrf_Coordinatorv2Mokck.getAddress()
+    vrfCoordinatorV2Address = vrf_Coordinatorv2Mokck.target
     console.log(vrf_Coordinatorv2Mokck.target)
     /*subID */
     const transactionResponse = await vrf_Coordinatorv2Mokck.createSubscription()
     const transactionReceipt = await transactionResponse.wait()
-    const events = transactionReceipt.events || []; 
+    // console.log(transactionReceipt)
+    // const events = transactionReceipt.events || [];
+    const events = (await vrf_Coordinatorv2Mokck.queryFilter(vrf_Coordinatorv2Mokck.filters.SubscriptionCreated()))
+    //console.log(event[0].args[0])
     if (events.length > 0) {
-      subscriptionId = events[0].args.subId;
+      subscriptionId = Number(events[0].args[0]);
+      console.log(subscriptionId)
       // Fund the subscription
       await vrf_Coordinatorv2Mokck.fundSubscription(subscriptionId, FUND_AMOUNT);
     }
@@ -30,6 +35,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   else {
     vrfCoordinatorV2Address = networkConfig[chainId]["vrfCoordinatorV2"]
     subscriptionId = networkConfig[chainId]["subscriptionId"]
+    console.log(vrfCoordinatorV2Address)
   }
 
   const arguments = [
@@ -40,7 +46,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     networkConfig[chainId]["entranceFee"],
     networkConfig[chainId]["callbackGasLimit"],
   ]
-
+  console.log(arguments)
   const lottery = await deploy("Lottery", {
     from: deployer,
     args: arguments,
