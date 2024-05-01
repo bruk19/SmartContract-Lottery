@@ -44,8 +44,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     networkConfig[chainId]["callbackGasLimit"],
     networkConfig[chainId]["interval"],
   ]
-
-  console.log(arguments)
+  
   const lottery = await deploy("Lottery", {
     from: deployer,
     args: arguments,
