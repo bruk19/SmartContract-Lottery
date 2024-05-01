@@ -76,7 +76,7 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
         return (upKeepNeeded, "0x0");
     }
 
-    function  performUpkeep(bytes calldata /* performData */) external override{
+    function performUpkeep(bytes calldata /* performData */) external override {
         (bool upKeepNeeded, ) = checkUpkeep("");
         if (!upKeepNeeded) {
             revert Raffle__UpKeepNotNeeded(
@@ -125,18 +125,22 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
     }
 
     function getRaffleState() public view returns (RaffleState) {
-      return s_raffleState;
+        return s_raffleState;
     }
 
     function getLatestTimeStamp() public view returns (uint256) {
-      return s_lastTimeStamp;
+        return s_lastTimeStamp;
     }
 
     function getNumberOfPlayers() public view returns (uint256) {
-      return s_players.length;
+        return s_players.length;
+    }
+
+    function getInteval() public view returns (uint256) {
+        return i_interval;
     }
 
     function getRequestConfirmation() public view returns (uint256) {
-      return REQUEST_CONFIRMATIONS;
+        return REQUEST_CONFIRMATIONS;
     }
 }
