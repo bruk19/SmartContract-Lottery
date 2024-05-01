@@ -16,7 +16,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     vrf_Coordinatorv2Mokck = await vrfCoordinatorV2Mock.deploy(BASE_FEE, GAS_PRICE_LINK)
     vrfCoordinatorV2Address = vrf_Coordinatorv2Mokck.target
-    console.log(vrf_Coordinatorv2Mokck.target)
     /*subID */
     const transactionResponse = await vrf_Coordinatorv2Mokck.createSubscription()
     const transactionReceipt = await transactionResponse.wait()
@@ -26,7 +25,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     //console.log(event[0].args[0])
     if (events.length > 0) {
       subscriptionId = Number(events[0].args[0]);
-      console.log(subscriptionId)
       // Fund the subscription
       await vrf_Coordinatorv2Mokck.fundSubscription(subscriptionId, FUND_AMOUNT);
     }
@@ -40,12 +38,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const arguments = [
     vrfCoordinatorV2Address,
-    subscriptionId,
-    networkConfig[chainId]["gasLane"],
-    networkConfig[chainId]["interval"],
     networkConfig[chainId]["entranceFee"],
+    networkConfig[chainId]["gasLane"],
+    subscriptionId,
     networkConfig[chainId]["callbackGasLimit"],
+    networkConfig[chainId]["interval"],
   ]
+
   console.log(arguments)
   const lottery = await deploy("Lottery", {
     from: deployer,
@@ -53,10 +52,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     log: true,
     waitConfirmations: network.config.blockConfirmations || 1,
   })
-
   if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
     log("Verifying...")
-    await verify(lottery.getAddress(), arguments)
+    await verify(lottery.target, arguments)
   }
   log("----------------------------------")
 }
