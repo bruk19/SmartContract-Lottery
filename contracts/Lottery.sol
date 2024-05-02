@@ -136,7 +136,7 @@ contract Lottery is VRFConsumerBaseV2, AutomationCompatibleInterface {
         return s_players.length;
     }
 
-    function getInteval() public view returns (uint256) {
+    function getInterval() public view returns (uint256) {
         return i_interval;
     }
 
