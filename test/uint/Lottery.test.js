@@ -37,5 +37,10 @@ const { assert } = ("chai");
           "Raffle__NotEnoughETHEntered"
         )
       })
+      it("records players when they enter", async function () {
+        await reffle.enterRaffle({ value: raffleEntranceFee})
+        const playerFromContract = await raffle.getPlayer()
+        assert.equal(playerFromContract, deployer)
+      })
     })
   })
