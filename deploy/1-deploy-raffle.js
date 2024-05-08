@@ -44,7 +44,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     networkConfig[chainId]["callbackGasLimit"],
     networkConfig[chainId]["interval"],
   ]
-  
+
   const lottery = await deploy("Lottery", {
     from: deployer,
     args: arguments,
@@ -53,7 +53,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   })
   if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
     log("Verifying...")
-    await verify(lottery.target, arguments)
+    await verify(lottery.address, arguments)
   }
   log("----------------------------------")
 }

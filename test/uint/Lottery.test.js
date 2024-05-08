@@ -1,21 +1,29 @@
 const { developmentChains, networkConfig } = require("../../helper-hardhat-config")
 // import hardhat from "hardhat";
 const { ethers, getNamedAccounts, deployments } = require("hardhat");
-const { assert } = ("chai");
+const { assert, expect } = ("chai");
 
 !developmentChains.includes(network.name)
-  ? describe.skip
+  ? describe.only
   : describe("Lottery Uint Test", async function () {
-    let lottery, vrfCoordinatorV2Mock, raffleEntranceFee, deployer
+    let lottery, vrfCoordinatorV2Mock, raffleEntranceFee, vrfCoordinatorV2, entranceFee,gasLane, subscriptionId, callbackGasLimit, interval, GAS_PRICE_LINK
     const chainId = network.config.chainId
 
     beforeEach(async function () {
-      const { deployer } = await getNamedAccounts()
+     const {deployer}  = await getNamedAccounts()
+
       await deployments.fixture(["all"])
-      lottery = await ethers.getContractFactory("Lottery", deployer)
-      vrfCoordinatorV2Mock = await ethers.getContractFactory("VRFCoordinatorV2Mock", deployer)
-      raffleEntranceFee = await raffle.getEntranceFee()
-      })
+      const _lottery = await ethers.getContractFactory("Lottery", {deployer})
+      
+      lottery = await _lottery.deploy(vrfCoordinatorV2, entranceFee,gasLane, subscriptionId, callbackGasLimit, interval )
+      console.log(lottery)
+      raffleEntranceFee = await lottery.getEntranceFee()
+      console.log(raffleEntranceFee)
+        
+      const _vrfCoordinatorV2Mock = await ethers.getContractFactory("VRFCoordinatorV2Mock", {deployer})
+      vrfCoordinatorV2Mock = await _vrfCoordinatorV2Mock.deploy(BASE_FEE, GAS_PRICE_LINK) 
+    
+    })
 
     describe("constructor", async function () {
       it("initializes the lottery correctly", async function () {
@@ -37,9 +45,10 @@ const { assert } = ("chai");
           "Raffle__NotEnoughETHEntered"
         )
       })
+
       it("records players when they enter", async function () {
-        await reffle.enterRaffle({ value: raffleEntranceFee})
-        const playerFromContract = await raffle.getPlayer()
+        await lottery.enterRaffle({ value: raffleEntranceFee })
+        const playerFromContract = await lottery.getPlayer(0)
         assert.equal(playerFromContract, deployer)
       })
     })
